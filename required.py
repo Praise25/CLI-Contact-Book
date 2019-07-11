@@ -54,32 +54,34 @@ def show_database():
     cursor.execute("SELECT * FROM contacts")
     display_record(cursor)
 
-def find_in_database(search_key, query):
+def find_in_database(column, query):
     conn = sqlite3.connect("contacts.db")
     cursor = conn.cursor()
     try:
-        cursor.execute("SELECT * FROM contacts WHERE {} LIKE '{}'".format(search_key, query))
+        cursor.execute("SELECT * FROM contacts WHERE {} LIKE '{}'".format(column, query))
         records = list(cursor)
         if records:
-            display_record(records)
+            return records
         else:
-            print(f"The record with {search_key} as {query} does not exist")
+            print(f"The record with {column} as {query} does not exist")
     except sqlite3.OperationalError:
-        print(f"The search key {search_key} does not exist")
-        print("Please use one of the following")
+        print(f"The column {column} does not exist")
+        print("Please use one of the following;")
         print("- lastname\n- firstname\n- email\n- phone_number")
     cursor.close()
     conn.close()
 
-def update_record(column, old_value, new_value):
+def update_database(column, contact_phone_no, new_value):
     conn = sqlite3.connect("contacts.db")
     cursor = conn.cursor()
     try:
-        cursor.execute("UPDATE contacts SET {0}='{1}' WHERE {0} LIKE '{2}'".format(column, new_value, old_value))
+        cursor.execute("UPDATE contacts SET {}='{}' WHERE phone_number='{}'".format(column, new_value, contact_phone_no))
         conn.commit()
         cursor.close()
         conn.close()
-        print(f"Successfully updated column {column} from {old_value} to {new_value}")
+        record = find_in_database("phone_number", contact_phone_no)
+        if record:
+            print(f"Successfully updated the {column} of {record[0][1]} {record[0][2]}")
     except sqlite3.OperationalError:
         print(f"The column {column} does not exist in the database")
     
@@ -93,8 +95,8 @@ def is_present(element, set):
 
 def display_record(record):
     for _, lastname, firstname, email, phone_number in record:
+            print("===========================================")
             print(f"Lastname: {lastname}")
             print(f"Firstname: {firstname}")
             print(f"Email: {email}")
             print(f"Phone Number: {phone_number}")
-            print("===========================================")
